@@ -3,9 +3,8 @@ name: Build TraceFloat APK
 on:
   workflow_dispatch:
   push:
-    paths:
-      - 'TraceFloat-Android-Project.zip'
-      - '.github/workflows/build.yml'
+    branches:
+      - main
 
 jobs:
   build:
@@ -21,22 +20,19 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Extract project ZIP
+      - name: Extract project
         run: |
           mkdir project
           unzip -o TraceFloat-Android-Project.zip -d project
 
-                - name: Fix Java source
+      - name: Fix Java file
         run: |
-          sed -i '/^\\n$/d' project/app/src/main/java/com/tracefloat/app/OverlayService.java
+          sed -i '123s/^\\n$//' project/app/src/main/java/com/tracefloat/app/OverlayService.java
 
       - name: Build APK
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.7'
-
-      - name: Assemble APK
-        run: gradle -p project assembleDebug
+        run: |
+          cd project
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
