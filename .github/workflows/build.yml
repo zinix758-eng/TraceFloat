@@ -1,41 +1,52 @@
 name: Build TraceFloat APK
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+workflow_dispatch:
+push:
+branches:
+- main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+build:
+runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+  - name: Setup Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
 
-      - name: Extract project
-        run: |
-          mkdir project
-          unzip -o TraceFloat-Android-Project.zip -d project
+  - name: Extract project
+    run: |
+      mkdir project
+      unzip -o TraceFloat-Android-Project.zip -d project
 
-      - name: Fix Java file
-        run: |
-          sed -i '123s/^\\n$//' project/app/src/main/java/com/tracefloat/app/OverlayService.java
+  - name: Fix and update project
+    run: |
+      python3 - <<'PY'
+      from pathlib import Path
 
-      - name: Build APK
-        run: |
-          cd project
-          gradle assembleDebug
+      java = Path("project/app/src/main/java/com/tracefloat/app/OverlayService.java")
+      content = java.read_text()
+      java.write_text(content.rstrip().removesuffix("\\n") + "\n")
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: TraceFloat-APK
-          path: project/app/build/outputs/apk/debug/app-debug.apk
+      gradle = Path("project/app/build.gradle")
+      content = gradle.read_text()
+      content = content.replace("targetSdk 32", "targetSdk 35")
+      gradle.write_text(content)
+      PY
+
+  - name: Build APK
+    run: |
+      cd project
+      gradle assembleDebug
+
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: TraceFloat-APK
+      path: project/app/build/outputs/apk/debug/app-debug.apk
