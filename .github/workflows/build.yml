@@ -26,6 +26,10 @@ jobs:
           mkdir project
           unzip -o TraceFloat-Android-Project.zip -d project
 
+                - name: Fix Java source
+        run: |
+          sed -i '/^\\n$/d' project/app/src/main/java/com/tracefloat/app/OverlayService.java
+
       - name: Build APK
         uses: gradle/actions/setup-gradle@v4
         with:
