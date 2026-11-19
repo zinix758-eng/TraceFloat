@@ -9,10 +9,9 @@ branches:
 jobs:
 build:
 runs-on: ubuntu-latest
-
 steps:
-  - name: Checkout
-    uses: actions/checkout@v4
+- name: Checkout
+uses: actions/checkout@v4
 
   - name: Setup Java
     uses: actions/setup-java@v4
@@ -25,20 +24,9 @@ steps:
       mkdir project
       unzip -o TraceFloat-Android-Project.zip -d project
 
-  - name: Fix and update project
+  - name: Fix Java file
     run: |
-      python3 - <<'PY'
-      from pathlib import Path
-
-      java = Path("project/app/src/main/java/com/tracefloat/app/OverlayService.java")
-      content = java.read_text()
-      java.write_text(content.rstrip().removesuffix("\\n") + "\n")
-
-      gradle = Path("project/app/build.gradle")
-      content = gradle.read_text()
-      content = content.replace("targetSdk 32", "targetSdk 35")
-      gradle.write_text(content)
-      PY
+      python3 -c "from pathlib import Path; p=Path('project/app/src/main/java/com/tracefloat/app/OverlayService.java'); s=p.read_text(); p.write_text(s.rstrip().removesuffix(chr(92)+'n')+'\\n')"
 
   - name: Build APK
     run: |
