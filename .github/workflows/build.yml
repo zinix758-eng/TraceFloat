@@ -1,6 +1,7 @@
 name: Build TraceFloat APK
 
-on: workflow_dispatch: 
+'on':
+workflow_dispatch:
 push:
 branches:
 - main
@@ -8,32 +9,33 @@ branches:
 jobs:
 build:
 runs-on: ubuntu-latest
+
 steps:
-- name: Checkout
-uses: actions/checkout@v4
+  - name: Checkout
+    uses: actions/checkout@v4
 
--name: Setup Java
-uses: actions/setup-java@v4
-with:
-distribution: temurin
-java-version: '17'
+  - name: Setup Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
 
--name: Extract project
-run: |
+  - name: Extract project
+    run: |
       mkdir project
       unzip -o TraceFloat-Android-Project.zip -d project
 
--name: Fix Java file
-run: |
+  - name: Fix Java file
+    run: |
       python3 -c "from pathlib import Path; p=Path('project/app/src/main/java/com/tracefloat/app/OverlayService.java'); s=p.read_text(); p.write_text(s.rstrip().removesuffix(chr(92)+'n')+'\\n')"
 
--name: Build APK
-run: |
+  - name: Build APK
+    run: |
       cd project
       gradle assembleDebug
 
--name: Upload APK
-uses: actions/upload-artifact@v4
-with:
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
       name: TraceFloat-APK
       path: project/app/build/outputs/apk/debug/app-debug.apk
